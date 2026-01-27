@@ -244,7 +244,7 @@ async def send_video(user_id, video_num, context):
     else:
         # Для третьего видео - сразу запускаем таймер для финального сообщения
         await asyncio.sleep(3)  # Пауза 3 секунды после отправки 3го видео
-        await send_final_content(user_id, context)
+        await send_final_video(user_id, context)
 
 
 async def auto_next_video(user_id, current_video_num, context):
@@ -284,11 +284,9 @@ async def auto_next_video(user_id, current_video_num, context):
         )
 
         # Пауза и отправка следующего видео
+        await asyncio.sleep(2)
         if current_video_num < 3:
-            await asyncio.sleep(2)
             await send_video(user_id, current_video_num + 1, context)
-        else:
-            await send_final_video(user_id, context)
 
     except asyncio.CancelledError:
         logger.info(f"Таймер отменен")
@@ -314,14 +312,14 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("Пожалуйста, начните с команды /start")
             return
 
-            # Отменяем таймер для этого видео (только для видео 1 и 2)
-            if video_num < 3:
-                timer_key = f'timer_{video_num}'
-                if timer_key in user_states[user_id]:
-                    timer = user_states[user_id][timer_key]
-                    if not timer.done():
-                        timer.cancel()
-                    user_states[user_id].pop(timer_key, None)
+        # Отменяем таймер для этого видео (только для видео 1 и 2)
+        if video_num < 3:
+            timer_key = f'timer_{video_num}'
+            if timer_key in user_states[user_id]:
+                timer = user_states[user_id][timer_key]
+                if not timer.done():
+                    timer.cancel()
+                user_states[user_id].pop(timer_key, None)
 
         # Обновляем состояние
         user_states[user_id]['current_video'] = video_num + 1
