@@ -6,10 +6,8 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # ========== НАСТРОЙКА СРЕДЫ ==========
-# Определяем, где запущен бот
 IS_PRODUCTION = os.getenv('PYTHONANYWHERE_SITE') is not None or os.getenv('RAILWAY_ENVIRONMENT') == 'production'
 
-# Настройка логирования
 log_level = logging.INFO if IS_PRODUCTION else logging.DEBUG
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -18,7 +16,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ========== ПОЛУЧЕНИЕ ТОКЕНА ==========
-# БЕЗОПАСНО: получаем токен из переменных окружения
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 if not TOKEN:
@@ -27,36 +24,61 @@ if not TOKEN:
         logger.error("📝 Добавьте TELEGRAM_BOT_TOKEN в настройках хостинга")
         exit(1)
     else:
-        # Для локального тестирования (можно временно указать здесь)
         TOKEN = ""
 
-logger.info(f"✅ Режим: {'ПРОДАКШЕН' if IS_PRODUCTION else 'ЛОКАЛЬНЫЙ'}")
+logger.info(f"✅ Режим: {'ПРОДАКШЕН' if IS_PRODUCTION else 'ЛОКАЛЬНЫЙ'} ")
 
 # ========== КОНСТАНТЫ БОТА ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Обновленные данные для видео с вашим текстом
 VIDEOS = {
     1: {
         'file_path': os.path.join(BASE_DIR, 'video1.mp4'),
-        'url': 'https://youtu.be/q3oTx5aCK6Q?si=dyzyTNLuOsCihTbL',
-        'conclusions': '📌 Какой ты молодец, что осилил первый урок!'
+        'url': 'ВАША_ССЫЛКА_НА_ВИДЕО_1',  # Замените на реальную ссылку
+        'text_before': """. урок 1 основы Photoshop
+
+скачать фотошоп (https://t.me/+v_vSoBd1p6o4NjUy)
+
+Обещанный подарок
+⠀
+Пак шрифтов, которым я делюсь на своем полноценном обучении.
+⠀
+1. подпишись на меня в инсте instagram.com/brezdenuk_/
+
+2/ выложи свой список желаний с отметкой меня и любым отзывом в сторис
+
+3/ напиши мне в личку тг 
+
+вот ссылка на инсту ↓
+instagram.com/brezdenuk_/
+https://t.me/brezdenuk""",
+        'conclusions': '📌 Отлично! Первый урок пройден!'
     },
     2: {
         'file_path': os.path.join(BASE_DIR, 'video2.mp4'),
-        'url': 'https://youtu.be/q3oTx5aCK6Q?si=dyzyTNLuOsCihTbL',
-        'conclusions': '📌 круто'
+        'url': 'ВАША_ССЫЛКА_НА_ВИДЕО_2',  # Замените на реальную ссылку
+        'text_before': """.урок 2 Создаем карточку для WB
+
+Все материалы к уроку (https://t.me/+v_vSoBd1p6o4NjUy)
+
+(повторяйте карточку за мной)""",
+        'conclusions': '📌 Отлично! Второй урок пройден!'
     },
     3: {
         'file_path': os.path.join(BASE_DIR, 'video3.mp4'),
-        'url': 'https://youtu.be/q3oTx5aCK6Q?si=dyzyTNLuOsCihTbL',
-        'conclusions': '📌 ура, это был третий урок!'
+        'url': 'ВАША_ССЫЛКА_НА_ВИДЕО_3',  # Замените на реальную ссылку
+        'text_before': """. урок 3 - как найти клиентов и начать зарабатывать.
+
+В конце видео отдам подарок""",
+        'conclusions': '📌 Поздравляю! Все уроки пройдены!'
     }
 }
 
 FINAL_VIDEO = {
     'file_path': os.path.join(BASE_DIR, 'final_video.mp4'),
-    'url': 'https://youtu.be/q3oTx5aCK6Q?si=dyzyTNLuOsCihTbL',
-    'caption': 'ляляляля'
+    'url': 'ССЫЛКА_НА_ФИНАЛЬНОЕ_ВИДЕО',  # Замените на реальную ссылку
+    'caption': '🎯 Видео-сообщение от автора курса'
 }
 
 # ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
@@ -65,7 +87,6 @@ active_timers = {}
 shutting_down = False
 
 
-# ========== ФУНКЦИИ БОТА (ваш существующий код) ==========
 async def cleanup_user(user_id):
     """Очистка данных пользователя"""
     if user_id in active_timers:
@@ -95,15 +116,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
     active_timers[user_id] = []
 
+    # Ваше первое сообщение без изменений
     await update.message.reply_text(
-        f"👋 Привет, {user.first_name}!\n\n"
-        "Я проведу тебя через 3 видео-урока.\n"
-        "📥 Я отправлю тебе видеофайлы, которые можно скачать.\n"
-        "▶️ После скачивания посмотри видео на своём устройстве.\n\n"
-        "Если не нажмёшь кнопку подтверждения, я автоматически "
-        "перейду к следующему видео через 10 минут."
+        """<b>привет!</b> искренне рад тебя видеть на моем мини-курсе
+
+За 3 видео, ты узнаешь:
+1. Основы дизайна, как скачать и работать в Photoshop
+2. Сделаешь дизайн своего списка желаний
+3. Создашь карточку товара для WB
+4. Разберешься как искать клиентов и зарабатывать
+
+<b>Я разработал лучший способ поиска заказов, мои ученики уже применили его и зарабатывают.</b>
+
+Для тебя это точно будет полезный навык""",
+        parse_mode="HTML"
     )
 
+    # Небольшая пауза перед отправкой первого видео
+    await asyncio.sleep(1)
     await send_video(user_id, 1, context)
 
 
@@ -115,44 +145,41 @@ async def send_video(user_id, video_num, context):
     chat_id = user_states[user_id]['chat_id']
     video_data = VIDEOS[video_num]
 
+    # 1. Отправляем текстовое сообщение перед видео
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=video_data['text_before'],
+        parse_mode='HTML',
+        disable_web_page_preview=True
+    )
+
+    # 2. Отправляем само видео (ссылка или файл)
     try:
-        # Пытаемся отправить видео файлом
-        with open(video_data['file_path'], 'rb') as video_file:
-            await context.bot.send_video(
-                chat_id=chat_id,
-                video=video_file,
-                caption=f"🎬 **Видео {video_num} из 3**\n\n"
-                        f"📎 Или смотрите по ссылке: {video_data['url']}",
-                supports_streaming=False,
-                disable_notification=True
-            )
-            logger.info(f"Видео {video_num} отправлено файлом")
+        if os.path.exists(video_data['file_path']):
+            # Пытаемся отправить файлом
+            with open(video_data['file_path'], 'rb') as video_file:
+                await context.bot.send_video(
+                    chat_id=chat_id,
+                    video=video_file,
+                    supports_streaming=False,
+                    disable_notification=True
+                )
+                logger.info(f"Видео {video_num} отправлено файлом")
+        else:
+            # Если файла нет - отправляем ссылку
+            raise FileNotFoundError
 
-    except FileNotFoundError:
-        # Если файл не найден - отправляем только ссылку
+    except (FileNotFoundError, Exception) as e:
+        # Отправляем ссылку на YouTube
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"🎬 **Видео {video_num} из 3**\n\n"
-                 f"📺 Смотрите по ссылке:\n"
-                 f"{video_data['url']}",
-            parse_mode='Markdown',
+            text=f"📺 Смотрите видео по ссылке:\n{video_data['url']}",
+            parse_mode='HTML',
             disable_web_page_preview=False
         )
-        logger.info(f"Файл не найден, отправлена ссылка на видео {video_num}")
+        logger.info(f"Отправлена ссылка на видео {video_num}")
 
-    except Exception as e:
-        # Любая другая ошибка - тоже отправляем ссылку
-        logger.error(f"Ошибка при отправке видео {video_num}: {e}")
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=f"🎬 **Видео {video_num} из 3**\n\n"
-                 f"📺 Смотрите по ссылке:\n"
-                 f"{video_data['url']}",
-            parse_mode='Markdown',
-            disable_web_page_preview=False
-        )
-
-    # Создаем кнопку
+    # 3. Отправляем кнопку подтверждения
     keyboard = [[
         InlineKeyboardButton(
             f"✅ Я посмотрел видео {video_num}",
@@ -163,17 +190,19 @@ async def send_video(user_id, video_num, context):
 
     await context.bot.send_message(
         chat_id=chat_id,
-        text=f"После просмотра видео нажмите кнопку:",
+        text="После просмотра видео нажмите кнопку ниже:",
         reply_markup=reply_markup
     )
 
-    # Запускаем таймер
+    # 4. Запускаем таймер авто-продолжения (только для видео 1 и 2)
     if video_num < 3 and not shutting_down:
+        # Отменяем предыдущий таймер, если есть
         if f'timer_{video_num - 1}' in user_states[user_id]:
             old_timer = user_states[user_id][f'timer_{video_num - 1}']
             if old_timer and not old_timer.done():
                 old_timer.cancel()
 
+        # Создаем новый таймер
         timer = asyncio.create_task(
             auto_next_video(user_id, video_num, context)
         )
@@ -184,7 +213,7 @@ async def send_video(user_id, video_num, context):
 async def auto_next_video(user_id, current_video_num, context):
     """Автоматически переходит к следующему видео через 10 минут"""
     try:
-        # На продакшене: 600 секунд, на локальном: 30 секунд для теста
+        # На продакшене: 600 секунд (10 минут), на локальном: 30 секунд для теста
         wait_time = 600 if IS_PRODUCTION else 30
         await asyncio.sleep(wait_time)
 
@@ -193,27 +222,31 @@ async def auto_next_video(user_id, current_video_num, context):
                 user_states[user_id].get('current_video') != current_video_num):
             return
 
+        # Обновляем состояние
         user_states[user_id]['current_video'] = current_video_num + 1
 
-        button_msg_id = user_states[user_id].get(f'button_msg_{current_video_num}')
-        if button_msg_id:
+        # Редактируем сообщение с кнопкой
+        if f'button_msg_{current_video_num}' in user_states[user_id]:
             try:
                 await context.bot.edit_message_text(
                     chat_id=user_states[user_id]['chat_id'],
-                    message_id=button_msg_id,
-                    text=f"⏰ Уже посмотрел урок? Отправляю следующий..."
+                    message_id=user_states[user_id][f'button_msg_{current_video_num}'],
+                    text="⏰ Уже посмотрел урок? Отправляю следующий..."
                 )
             except Exception as e:
                 logger.error(f"Ошибка при редактировании сообщения: {e}")
 
+        # Удаляем таймер
         user_states[user_id].pop(f'timer_{current_video_num}', None)
 
+        # Отправляем выводы по уроку
         await context.bot.send_message(
             chat_id=user_states[user_id]['chat_id'],
             text=VIDEOS[current_video_num]['conclusions'],
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
+        # Пауза и отправка следующего видео
         if current_video_num < 3:
             await asyncio.sleep(2)
             await send_video(user_id, current_video_num + 1, context)
@@ -244,6 +277,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("Пожалуйста, начните с команды /start")
             return
 
+        # Отменяем таймер для этого видео
         timer_key = f'timer_{video_num}'
         if timer_key in user_states[user_id]:
             timer = user_states[user_id][timer_key]
@@ -251,13 +285,24 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 timer.cancel()
             user_states[user_id].pop(timer_key, None)
 
+        # Обновляем состояние
         user_states[user_id]['current_video'] = video_num + 1
 
+        # Редактируем сообщение с кнопкой
+        try:
+            await query.edit_message_text(
+                text="✅ Вы подтвердили просмотр видео!"
+            )
+        except Exception as e:
+            logger.error(f"Ошибка при редактировании кнопки: {e}")
+
+        # Отправляем выводы по уроку
         await query.message.reply_text(
             VIDEOS[video_num]['conclusions'],
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
+        # Пауза и отправка следующего видео
         await asyncio.sleep(1)
 
         if video_num < 3:
@@ -267,7 +312,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def send_final_video(user_id, context):
-    """Отправляет финальное видео"""
+    """Отправляет финальное видео (без изменений)"""
     if user_id not in user_states:
         return
 
@@ -284,15 +329,36 @@ async def send_final_video(user_id, context):
 
     if os.path.exists(FINAL_VIDEO['file_path']):
         try:
-            with open(FINAL_VIDEO['file_path'], 'rb') as video_file:
-                await context.bot.send_video(
-                    chat_id=chat_id,
-                    video=video_file,
-                    caption=FINAL_VIDEO['caption'],
-                    parse_mode='Markdown',
-                    supports_streaming=False
-                )
-                video_sent = True
+            # Пробуем отправить как Video Note (кружок)
+            try:
+                with open(FINAL_VIDEO['file_path'], 'rb') as video_file:
+                    await context.bot.send_video_note(
+                        chat_id=chat_id,
+                        video_note=video_file,
+                        duration=38,
+                        length=640
+                    )
+                    video_sent = True
+
+                    await context.bot.send_message(
+                        chat_id=chat_id,
+                        text=FINAL_VIDEO['caption'],
+                        parse_mode='Markdown'
+                    )
+
+            except Exception as note_error:
+                logger.warning(f"Не удалось отправить как Video Note: {note_error}")
+
+                with open(FINAL_VIDEO['file_path'], 'rb') as video_file:
+                    await context.bot.send_video(
+                        chat_id=chat_id,
+                        video=video_file,
+                        caption=FINAL_VIDEO['caption'],
+                        parse_mode='Markdown',
+                        supports_streaming=False
+                    )
+                    video_sent = True
+
         except Exception as e:
             logger.error(f"Ошибка при отправке финального видео: {e}")
             video_sent = False
@@ -309,9 +375,28 @@ async def send_final_video(user_id, context):
 
     await context.bot.send_message(
         chat_id=chat_id,
-        text="🔗 еще какая-то ссылка:\n"
-             "👉 Нажмите выше, чтобы присоединиться!\n\n"
-             "🔄 Чтобы начать заново, отправьте /start",
+        text="<b>Поздравляю</b> тебя <b>с прохождением</b> Миникурса!\n"
+"Ты проделал(а) классную работу!"
+"Надеюсь теперь, ты полюбил(а) дизайн также сильно, как и я\n"
+"Буду искренне рад видеть тебя на своем предобучение -\n"
+"предобучение - это часть моего <b>основного курса</b>," 
+"где в течении 5 дней ты сможешь побыть на нем в роле студента\n"
+"Что ты получишь:\n"
+"<b>+ 20 актульных способов поиска клиентов</b>"
+"- Освоешь первостепенные навыки дизайна"
+"- Научишься работать в Photoshop"
+"- Cделашь первые качественные карточки"
+"- Получишь от меня обратную связь на все вопросы\n\n"
+"<b>Те кто прошел миникурс могут занять место на предобучении со"
+"СКИДКОЙ 50% на 24 ЧАСА</b>\n"
+"↓ ↓ ↓ ↓"
+"https://t.me/Alexander_brez"
+"https://t.me/Alexander_brez"
+"https://t.me/Alexander_brez\n"
+"напиши мне: 'дизайн' - и я покажу всю программу предобучения\n"
+"Telegram (https://t.me/Alexander_brez)"
+"Брезденюк | Дизайнер"
+"Канал про дизайн: https://t.me/brezdenuk", parse_mode="HTML",
         disable_web_page_preview=True
     )
 
@@ -321,12 +406,13 @@ async def send_final_video(user_id, context):
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Команда /help"""
     await update.message.reply_text(
-        "ℹ️ **Помощь:**\n\n"
+        "ℹ️ <b>Помощь:</b>\n\n"
         "/start - Начать обучение\n"
         "/help - Эта справка\n\n"
-        "📥 Бот отправляет видеофайлы для обучения\n"
+        "📥 Бот отправляет видео для обучения\n"
         "⏳ На каждое видео даётся 10 минут\n"
-        "✅ Нажмите кнопку после просмотра"
+        "✅ Нажмите кнопку после просмотра",
+        parse_mode='HTML'
     )
 
 
