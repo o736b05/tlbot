@@ -370,7 +370,7 @@ async def send_final_video(user_id, context):
     if not video_sent:
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"{FINAL_VIDEO['url']}\n\n"
+            text=f"{FINAL_VIDEO['url']}\n\n",
                  # f"{FINAL_VIDEO['caption']}",
             # parse_mode='Markdown',
             disable_web_page_preview=False
