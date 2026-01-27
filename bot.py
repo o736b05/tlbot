@@ -87,6 +87,27 @@ active_timers = {}
 shutting_down = False
 
 
+# ========== НОВАЯ ФУНКЦИЯ ДЛЯ ОТПРАВКИ СООБЩЕНИЯ ПОСЛЕ 21 ЧАСА ==========
+async def send_discount_reminder(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
+    """Отправляет сообщение о скидке через 21 час"""
+    message_text = (
+        "<b><u>У тебя осталось 3 часа до конца скидки</u></b>\n\n"
+        "<a href='https://t.me/Alexander_brez'>Занять место по выгодной цене:</a>\n"
+        "<a href='https://t.me/Alexander_brez'>Занять место</a>"
+    )
+
+    try:
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=message_text,
+            parse_mode='HTML',
+            disable_web_page_preview=True
+        )
+        logger.info(f"Сообщение о скидке отправлено пользователю {chat_id}")
+    except Exception as e:
+        logger.error(f"Ошибка при отправке сообщения о скидке: {e}")
+
+
 async def cleanup_user(user_id):
     """Очистка данных пользователя"""
     if user_id in active_timers:
@@ -189,34 +210,41 @@ async def send_video(user_id, video_num, context):
         )
 
     # 3. Отправляем кнопку подтверждения
-    keyboard = [[
-        InlineKeyboardButton(
-            f"✅ Я посмотрел видео {video_num}",
-            callback_data=f'watched_{video_num}'
+    if video_num < 3:
+        keyboard = [[
+            InlineKeyboardButton(
+                f"✅ Я посмотрел видео {video_num}",
+                callback_data=f'watched_{video_num}'
+            )
+        ]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        button_msg = await context.bot.send_message(
+            chat_id=chat_id,
+            text="После просмотра видео нажмите кнопку ниже:",
+            reply_markup=reply_markup
         )
-    ]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+        user_states[user_id][f'button_msg_{video_num}'] = button_msg.message_id
 
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text="После просмотра видео нажмите кнопку ниже:",
-        reply_markup=reply_markup
-    )
+        # 4. Запускаем таймер авто-продолжения (только для видео 1 и 2)
+        if not shutting_down:
+            # Отменяем предыдущий таймер, если есть
+            timer_key = f'timer_{video_num}'
+            if timer_key in user_states[user_id]:
+                old_timer = user_states[user_id][timer_key]
+                if old_timer and not old_timer.done():
+                    old_timer.cancel()
 
-    # 4. Запускаем таймер авто-продолжения (только для видео 1 и 2)
-    if video_num < 3 and not shutting_down:
-        # Отменяем предыдущий таймер, если есть
-        if f'timer_{video_num - 1}' in user_states[user_id]:
-            old_timer = user_states[user_id][f'timer_{video_num - 1}']
-            if old_timer and not old_timer.done():
-                old_timer.cancel()
-
-        # Создаем новый таймер
-        timer = asyncio.create_task(
-            auto_next_video(user_id, video_num, context)
-        )
-        active_timers[user_id].append(timer)
-        user_states[user_id][f'timer_{video_num}'] = timer
+            # Создаем новый таймер
+            timer = asyncio.create_task(
+                auto_next_video(user_id, video_num, context)
+            )
+            active_timers[user_id].append(timer)
+            user_states[user_id][timer_key] = timer
+    else:
+        # Для третьего видео - сразу запускаем таймер для финального сообщения
+        await asyncio.sleep(3)  # Пауза 3 секунды после отправки 3го видео
+        await send_final_content(user_id, context)
 
 
 async def auto_next_video(user_id, current_video_num, context):
@@ -286,13 +314,14 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("Пожалуйста, начните с команды /start")
             return
 
-        # Отменяем таймер для этого видео
-        timer_key = f'timer_{video_num}'
-        if timer_key in user_states[user_id]:
-            timer = user_states[user_id][timer_key]
-            if not timer.done():
-                timer.cancel()
-            user_states[user_id].pop(timer_key, None)
+            # Отменяем таймер для этого видео (только для видео 1 и 2)
+            if video_num < 3:
+                timer_key = f'timer_{video_num}'
+                if timer_key in user_states[user_id]:
+                    timer = user_states[user_id][timer_key]
+                    if not timer.done():
+                        timer.cancel()
+                    user_states[user_id].pop(timer_key, None)
 
         # Обновляем состояние
         user_states[user_id]['current_video'] = video_num + 1
@@ -314,10 +343,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Пауза и отправка следующего видео
         await asyncio.sleep(1)
 
-        if video_num < 3:
+        if video_num < 2:
             await send_video(user_id, video_num + 1, context)
-        else:
-            await send_final_video(user_id, context)
+        elif video_num == 2:
+            # Для второго видео сразу отправляем третье видео
+            await send_video(user_id, 3, context)
 
 
 async def send_final_video(user_id, context):
@@ -380,7 +410,7 @@ async def send_final_video(user_id, context):
             # parse_mode='Markdown',
             disable_web_page_preview=False
         )
-
+    await asyncio.sleep(2)
     await context.bot.send_message(
         chat_id=chat_id,
         text="<b>Поздравляю</b> тебя <b>с прохождением</b> Миникурса!\n\n"
@@ -408,8 +438,38 @@ async def send_final_video(user_id, context):
         disable_web_page_preview=True
     )
 
+    # Устанавливаем таймер для отправки напоминания о скидке через 21 час
+    if not user_states[user_id].get('discount_timer_set', False):
+        # Рассчитываем время отправки (21 час с момента финального сообщения)
+        reminder_time = datetime.now() + timedelta(hours=21)
+
+        # Создаем отложенную задачу
+        reminder_timer = asyncio.create_task(
+            delayed_discount_reminder(user_id, context)
+        )
+        active_timers[user_id].append(reminder_timer)
+        user_states[user_id]['discount_timer_set'] = True
+        user_states[user_id]['discount_reminder_time'] = reminder_time
+
+        logger.info(f"Таймер скидки установлен для пользователя {user_id} на {reminder_time}")
+
     await cleanup_user(user_id)
 
+
+async def delayed_discount_reminder(user_id, context):
+    """Отправляет напоминание о скидке через 21 час"""
+    try:
+        # Ждем 21 час
+        await asyncio.sleep(21 * 3600)  # 21 час в секундах
+
+        if user_id in user_states and not shutting_down:
+            chat_id = user_states[user_id]['chat_id']
+            await send_discount_reminder(context, chat_id)
+
+    except asyncio.CancelledError:
+        logger.info(f"Таймер скидки отменен для пользователя {user_id}")
+    except Exception as e:
+        logger.error(f"Ошибка в delayed_discount_reminder: {e}")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Команда /help"""
