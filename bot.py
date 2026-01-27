@@ -149,14 +149,6 @@ async def send_video(user_id, video_num, context):
     chat_id = user_states[user_id]['chat_id']
     video_data = VIDEOS[video_num]
 
-    # 1. Отправляем текстовое сообщение перед видео
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=video_data['text_before'],
-        parse_mode='HTML',
-        disable_web_page_preview=True
-    )
-
     # 2. Отправляем само видео (ссылка или файл)
     try:
         if os.path.exists(video_data['file_path']):
@@ -172,6 +164,13 @@ async def send_video(user_id, video_num, context):
         else:
             # Если файла нет - отправляем ссылку
             raise FileNotFoundError
+            # 1. Отправляем текстовое сообщение перед видео
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=video_data['text_before'],
+            parse_mode='HTML',
+            disable_web_page_preview=True
+        )
 
     except (FileNotFoundError, Exception) as e:
         # Отправляем ссылку на YouTube
@@ -182,6 +181,12 @@ async def send_video(user_id, video_num, context):
             disable_web_page_preview=False
         )
         logger.info(f"Отправлена ссылка на видео {video_num}")
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=video_data['text_before'],
+            parse_mode='HTML',
+            disable_web_page_preview=True
+        )
 
     # 3. Отправляем кнопку подтверждения
     keyboard = [[
@@ -390,8 +395,8 @@ async def send_final_video(user_id, context):
 "- Научишься работать в Photoshop\n"
 "- Cделашь первые качественные карточки\n"
 "- Получишь от меня обратную связь на все вопросы\n\n\n"
-"<b>Те кто прошел миникурс могут занять место на предобучении со\n"
-"СКИДКОЙ 50% на 24 ЧАСА</b>\n\n"
+"<b><u>Те кто прошел миникурс могут занять место на предобучении со\n"
+"СКИДКОЙ 50% на 24 ЧАСА</u></b>\n\n"
 "↓ ↓ ↓ ↓\n"
 "https://t.me/Alexander_brez\n"
 "https://t.me/Alexander_brez\n"
