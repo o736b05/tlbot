@@ -36,7 +36,7 @@ VIDEOS = {
     1: {
         'file_path': os.path.join(BASE_DIR, 'video1.mp4'),
         'url': 'ВАША_ССЫЛКА_НА_ВИДЕО_1',  # Замените на реальную ссылку
-        'text_before': """урок 1. основы Photoshop
+        'text_before': """урок 1. Основы Photoshop
 
 скачать фотошоп (https://t.me/+v_vSoBd1p6o4NjUy)
 
@@ -58,7 +58,7 @@ instagram.com/brezdenuk_/
     2: {
         'file_path': os.path.join(BASE_DIR, 'video2.mp4'),
         'url': 'ВАША_ССЫЛКА_НА_ВИДЕО_2',  # Замените на реальную ссылку
-        'text_before': """.урок 2 Создаем карточку для WB
+        'text_before': """урок 2. Создаем карточку для WB
 
 Все материалы к уроку (https://t.me/+v_vSoBd1p6o4NjUy)
 
@@ -68,10 +68,10 @@ instagram.com/brezdenuk_/
     3: {
         'file_path': os.path.join(BASE_DIR, 'video3.mp4'),
         'url': 'ВАША_ССЫЛКА_НА_ВИДЕО_3',  # Замените на реальную ссылку
-        'text_before': """. урок 3 - как найти клиентов и начать зарабатывать.
+        'text_before': """урок 3. Как найти клиентов и начать зарабатывать.
 
 В конце видео отдам подарок""",
-        'conclusions': '📌 Поздравляю! Все уроки пройдены!'
+        'conclusions': '📌 Все уроки пройдены!'
     }
 }
 
@@ -344,11 +344,11 @@ async def send_final_video(user_id, context):
                     )
                     video_sent = True
 
-                    await context.bot.send_message(
-                        chat_id=chat_id,
-                        text=FINAL_VIDEO['caption'],
-                        parse_mode='Markdown'
-                    )
+                    # await context.bot.send_message(
+                    #     chat_id=chat_id,
+                    #     text=FINAL_VIDEO['caption'],
+                    #     parse_mode='Markdown'
+                    # )
 
             except Exception as note_error:
                 logger.warning(f"Не удалось отправить как Video Note: {note_error}")
@@ -357,8 +357,8 @@ async def send_final_video(user_id, context):
                     await context.bot.send_video(
                         chat_id=chat_id,
                         video=video_file,
-                        caption=FINAL_VIDEO['caption'],
-                        parse_mode='Markdown',
+                        # caption=FINAL_VIDEO['caption'],
+                        # parse_mode='Markdown',
                         supports_streaming=False
                     )
                     video_sent = True
@@ -370,10 +370,9 @@ async def send_final_video(user_id, context):
     if not video_sent:
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"📹 **Видео-сообщение от автора:**\n\n"
-                 f"{FINAL_VIDEO['url']}\n\n"
-                 f"{FINAL_VIDEO['caption']}",
-            parse_mode='Markdown',
+            text=f"{FINAL_VIDEO['url']}\n\n"
+                 # f"{FINAL_VIDEO['caption']}",
+            # parse_mode='Markdown',
             disable_web_page_preview=False
         )
 
