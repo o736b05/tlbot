@@ -491,7 +491,7 @@ async def send_final_video(user_id, context):
     # Устанавливаем таймер для отправки напоминания о скидке через 21 час
     if not user_states[user_id].get('discount_timer_set', False):
         # Рассчитываем время отправки (21 час с момента финального сообщения)
-        reminder_time = datetime.now() + timedelta(seconds=3)
+        reminder_time = datetime.now() + timedelta(seconds=7)
 
         # Создаем отложенную задачу
         reminder_timer = asyncio.create_task(
@@ -513,7 +513,7 @@ async def delayed_discount_reminder(user_id, context):
     """Отправляет напоминание о скидке через 21 час"""
     try:
         # Ждем 3 секунды для теста (или 21 час для продакшена)
-        await asyncio.sleep(7)  # В продакшене: await asyncio.sleep(21 * 3600)
+        await asyncio.sleep(3)  # В продакшене: await asyncio.sleep(21 * 3600)
 
         # Проверяем, не завершается ли бот
         if not shutting_down:
