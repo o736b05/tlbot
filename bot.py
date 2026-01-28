@@ -513,7 +513,7 @@ async def delayed_discount_reminder(user_id, context):
     """Отправляет напоминание о скидке через 21 час"""
     try:
         # Ждем 3 секунды для теста (или 21 час для продакшена)
-        await asyncio.sleep(3)  # В продакшене: await asyncio.sleep(21 * 3600)
+        await asyncio.sleep(7)  # В продакшене: await asyncio.sleep(21 * 3600)
 
         # Проверяем, не завершается ли бот
         if not shutting_down:
