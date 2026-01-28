@@ -436,6 +436,8 @@ async def send_final_video(user_id, context):
         disable_web_page_preview=True
     )
 
+    saved_chat_id = chat_id
+
     # Устанавливаем таймер для отправки напоминания о скидке через 21 час
     if not user_states[user_id].get('discount_timer_set', False):
         # Рассчитываем время отправки (21 час с момента финального сообщения)
