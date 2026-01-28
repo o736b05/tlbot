@@ -35,8 +35,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 VIDEOS = {
     1: {
         'file_path': os.path.join(BASE_DIR, 'video1.mp4'),
-        'url': 'ВАША_ССЫЛКА_НА_ВИДЕО_1',  # Замените на реальную ссылку
-        'text_before': """урок 1. Основы Photoshop
+        'url': 'https://disk.yandex.ru/d/eO0ffJFFLev1YA',  # Замените на реальную ссылку
+        'text_before': """если у тебя не загружается урок — его можно 
+открыть по ссылке: https://disk.yandex.ru/d/eO0ffJFFLev1YA
+
+урок 1. Основы Photoshop
 
 скачать фотошоп (https://t.me/+v_vSoBd1p6o4NjUy)
 
@@ -57,8 +60,11 @@ instagram.com/brezdenuk_/
     },
     2: {
         'file_path': os.path.join(BASE_DIR, 'video2.mp4'),
-        'url': 'ВАША_ССЫЛКА_НА_ВИДЕО_2',  # Замените на реальную ссылку
-        'text_before': """урок 2. Создаем карточку для WB
+        'url': 'https://disk.yandex.ru/d/eO0ffJFFLev1YA',  # Замените на реальную ссылку
+        'text_before': """если у тебя не загружается урок — его можно 
+открыть по ссылке: https://disk.yandex.ru/d/eO0ffJFFLev1YA
+
+урок 2. Создаем карточку для WB
 
 Все материалы к уроку (https://t.me/+v_vSoBd1p6o4NjUy)
 
@@ -67,8 +73,11 @@ instagram.com/brezdenuk_/
     },
     3: {
         'file_path': os.path.join(BASE_DIR, 'video3.mp4'),
-        'url': 'ВАША_ССЫЛКА_НА_ВИДЕО_3',  # Замените на реальную ссылку
-        'text_before': """урок 3. Как найти клиентов и начать зарабатывать.
+        'url': 'https://disk.yandex.ru/d/eO0ffJFFLev1YA',  # Замените на реальную ссылку
+        'text_before': """если у тебя не загружается урок — его можно 
+открыть по ссылке: https://disk.yandex.ru/d/eO0ffJFFLev1YA
+
+урок 3. Как найти клиентов и начать зарабатывать.
 
 В конце видео отдам подарок""",
         'conclusions': '📌 Все уроки пройдены!'
@@ -77,7 +86,7 @@ instagram.com/brezdenuk_/
 
 FINAL_VIDEO = {
     'file_path': os.path.join(BASE_DIR, 'final_video.mp4'),
-    'url': 'ССЫЛКА_НА_ФИНАЛЬНОЕ_ВИДЕО',  # Замените на реальную ссылку
+    'url': 'https://disk.yandex.ru/d/eO0ffJFFLev1YA',  # Замените на реальную ссылку
     'caption': '🎯 Видео-сообщение от автора курса'
 }
 
@@ -428,12 +437,6 @@ async def send_final_video(user_id, context):
                     )
                     video_sent = True
 
-                    # await context.bot.send_message(
-                    #     chat_id=chat_id,
-                    #     text=FINAL_VIDEO['caption'],
-                    #     parse_mode='Markdown'
-                    # )
-
             except Exception as note_error:
                 logger.warning(f"Не удалось отправить как Video Note: {note_error}")
 
@@ -441,8 +444,6 @@ async def send_final_video(user_id, context):
                     await context.bot.send_video(
                         chat_id=chat_id,
                         video=video_file,
-                        # caption=FINAL_VIDEO['caption'],
-                        # parse_mode='Markdown',
                         supports_streaming=False
                     )
                     video_sent = True
@@ -455,8 +456,6 @@ async def send_final_video(user_id, context):
         await context.bot.send_message(
             chat_id=chat_id,
             text=f"{FINAL_VIDEO['url']}\n\n",
-                 # f"{FINAL_VIDEO['caption']}",
-            # parse_mode='Markdown',
             disable_web_page_preview=False
         )
     await asyncio.sleep(2)
@@ -492,7 +491,7 @@ async def send_final_video(user_id, context):
     # Устанавливаем таймер для отправки напоминания о скидке через 21 час
     if not user_states[user_id].get('discount_timer_set', False):
         # Рассчитываем время отправки (21 час с момента финального сообщения)
-        reminder_time = datetime.now() + timedelta(seconds=3)
+        reminder_time = datetime.now() + timedelta(hours=21)
 
         # Создаем отложенную задачу
         reminder_timer = asyncio.create_task(
@@ -514,7 +513,7 @@ async def delayed_discount_reminder(user_id, context):
     """Отправляет напоминание о скидке через 21 час"""
     try:
         # Ждем 3 секунды для теста (или 21 час для продакшена)
-        await asyncio.sleep(3)  # В продакшене: await asyncio.sleep(21 * 3600)
+        await asyncio.sleep(21 * 3600)
 
         # Проверяем, не завершается ли бот
         if not shutting_down:
