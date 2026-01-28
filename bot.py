@@ -109,15 +109,65 @@ async def send_discount_reminder(context: ContextTypes.DEFAULT_TYPE, chat_id: in
 
 
 async def cleanup_user(user_id):
-    """Очистка данных пользователя"""
+    """Очистка данных пользователя, но только если нет активных таймеров"""
+    # Проверяем, есть ли активные таймеры
+    has_active_timers = False
     if user_id in active_timers:
         for timer in active_timers[user_id]:
             if not timer.done():
-                timer.cancel()
-        active_timers.pop(user_id, None)
+                has_active_timers = True
+                break
 
-    if user_id in user_states:
-        user_states.pop(user_id, None)
+    # Если есть активные таймеры, не удаляем пользователя полностью
+    if has_active_timers:
+        # Просто отмечаем как завершенного, но оставляем данные
+        if user_id in user_states:
+            user_states[user_id]['cleanup_pending'] = True
+        logger.info(f"Пользователь {user_id} имеет активные таймеры, откладываем очистку")
+    else:
+        # Если таймеров нет, удаляем полностью
+        if user_id in active_timers:
+            active_timers.pop(user_id, None)
+        if user_id in user_states:
+            user_states.pop(user_id, None)
+        logger.info(f"Данные пользователя {user_id} полностью очищены")
+
+
+# Добавляем новую функцию для проверки и удаления старых пользователей
+async def cleanup_completed_users():
+    """Периодически очищает данные завершенных пользователей"""
+    while not shutting_down:
+        await asyncio.sleep(300)  # Проверяем каждые 5 минут
+
+        current_time = datetime.now()
+        users_to_remove = []
+
+        for user_id, user_data in user_states.items():
+            if user_data.get('completed', False):
+                # Проверяем, был ли отправлен discount_reminder
+                reminder_time = user_data.get('discount_reminder_time')
+
+                if reminder_time:
+                    # Если таймер скидки прошел (21 час + 1 час на всякий случай)
+                    if current_time > reminder_time + timedelta(hours=1):
+                        # Проверяем активные таймеры
+                        has_active_timers = False
+                        if user_id in active_timers:
+                            for timer in active_timers[user_id]:
+                                if not timer.done():
+                                    has_active_timers = True
+                                    break
+
+                        if not has_active_timers:
+                            users_to_remove.append(user_id)
+
+        # Удаляем старых пользователей
+        for user_id in users_to_remove:
+            if user_id in active_timers:
+                active_timers.pop(user_id, None)
+            if user_id in user_states:
+                user_states.pop(user_id, None)
+            logger.info(f"Автоматически очищены данные пользователя {user_id}")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -436,7 +486,7 @@ async def send_final_video(user_id, context):
         disable_web_page_preview=True
     )
 
-    saved_chat_id = chat_id
+    user_states[user_id]['completed'] = True
 
     # Устанавливаем таймер для отправки напоминания о скидке через 21 час
     if not user_states[user_id].get('discount_timer_set', False):
@@ -447,25 +497,39 @@ async def send_final_video(user_id, context):
         reminder_timer = asyncio.create_task(
             delayed_discount_reminder(user_id, context)
         )
+
+        # ВАЖНО: добавляем таймер в active_timers
+        if user_id not in active_timers:
+            active_timers[user_id] = []
         active_timers[user_id].append(reminder_timer)
+
         user_states[user_id]['discount_timer_set'] = True
         user_states[user_id]['discount_reminder_time'] = reminder_time
 
         logger.info(f"Таймер скидки установлен для пользователя {user_id} на {reminder_time}")
 
-    await cleanup_user(user_id)
-
 
 async def delayed_discount_reminder(user_id, context):
     """Отправляет напоминание о скидке через 21 час"""
     try:
-        # Ждем 21 час
-        # await asyncio.sleep(21 * 3600)  # 21 час в секундах
-        await asyncio.sleep(3)
+        # Ждем 3 секунды для теста (или 21 час для продакшена)
+        await asyncio.sleep(3)  # В продакшене: await asyncio.sleep(21 * 3600)
 
-        if user_id in user_states and not shutting_down:
-            chat_id = user_states[user_id]['chat_id']
-            await send_discount_reminder(context, chat_id)
+        # Проверяем, не завершается ли бот
+        if not shutting_down:
+            # ЗДЕСЬ ВАЖНО: проверяем chat_id без использования user_states
+            chat_id = None
+
+            # Если пользователь все еще в user_states, берем оттуда
+            if user_id in user_states:
+                chat_id = user_states[user_id]['chat_id']
+            else:
+                # Пользователь уже удален, нужно сохранить chat_id заранее
+                # Но мы это сделаем по-другому
+                return
+
+            if chat_id:
+                await send_discount_reminder(context, chat_id)
 
     except asyncio.CancelledError:
         logger.info(f"Таймер скидки отменен для пользователя {user_id}")
