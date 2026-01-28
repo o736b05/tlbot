@@ -458,7 +458,8 @@ async def delayed_discount_reminder(user_id, context):
     """Отправляет напоминание о скидке через 21 час"""
     try:
         # Ждем 21 час
-        await asyncio.sleep(21 * 3600)  # 21 час в секундах
+        # await asyncio.sleep(21 * 3600)  # 21 час в секундах
+        await asyncio.sleep(3)
 
         if user_id in user_states and not shutting_down:
             chat_id = user_states[user_id]['chat_id']
