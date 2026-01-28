@@ -93,7 +93,8 @@ async def send_discount_reminder(context: ContextTypes.DEFAULT_TYPE, chat_id: in
     message_text = (
         "<b><u>У тебя осталось 3 часа до конца скидки</u></b>\n\n"
         "<a href='https://t.me/Alexander_brez'>Занять место по выгодной цене:</a>\n"
-        "<a href='https://t.me/Alexander_brez'>Занять место</a>"
+        "<a href='https://t.me/Alexander_brez'>Занять место</a>\n"
+        "t.me/brezdenuk"
     )
 
     try:
@@ -109,7 +110,6 @@ async def send_discount_reminder(context: ContextTypes.DEFAULT_TYPE, chat_id: in
 
 
 async def cleanup_user(user_id):
-    # logger.info(f"⚠️ cleanup_user вызван для {user_id}, но временно отключен")
     """Очистка данных пользователя, но только если нет активных таймеров"""
     # Проверяем, есть ли активные таймеры
     has_active_timers = False
@@ -487,26 +487,6 @@ async def send_final_video(user_id, context):
         disable_web_page_preview=True
     )
 
-    # Устанавливаем таймер для отправки напоминания о скидке
-    # if not user_states[user_id].get('discount_timer_set', False):
-    #     reminder_time = datetime.now() + timedelta(seconds=5)
-    # 
-    #     # Создаем отложенную задачу (ТЕСТОВАЯ ВЕРСИЯ)
-    #     reminder_timer = asyncio.create_task(
-    #         delayed_discount_reminder_test(user_id, context)  # ИСПОЛЬЗУЕМ ТЕСТОВУЮ
-    #     )
-    # 
-    #     # Сохраняем информацию о таймере
-    #     if user_id not in active_timers:
-    #         active_timers[user_id] = []
-    #     active_timers[user_id].append(reminder_timer)
-    # 
-    #     user_states[user_id]['discount_timer_set'] = True
-    #     user_states[user_id]['discount_reminder_time'] = reminder_time
-    # 
-    #     logger.info(f"🚀 Таймер скидки (ТЕСТ 5 секунд) установлен для пользователя {user_id}")
-    #     logger.info(f"📊 Текущие пользователи: {list(user_states.keys())}")
-
     user_states[user_id]['completed'] = True
 
     # Устанавливаем таймер для отправки напоминания о скидке через 21 час
@@ -556,46 +536,6 @@ async def delayed_discount_reminder(user_id, context):
         logger.info(f"Таймер скидки отменен для пользователя {user_id}")
     except Exception as e:
         logger.error(f"Ошибка в delayed_discount_reminder: {e}")
-
-
-async def delayed_discount_reminder_test(user_id, context):
-    """Тестовая функция для отладки"""
-    try:
-        logger.info(f"Таймер СТАРТ для пользователя {user_id} в {datetime.now()}")
-
-        # Ждем 5 секунд (больше, чтобы наверняка)
-        await asyncio.sleep(3)
-
-        logger.info(f"Таймер ПРОСНУЛСЯ для пользователя {user_id} в {datetime.now()}")
-        logger.info(f"shutting_down = {shutting_down}")
-        logger.info(f"user_id in user_states = {user_id in user_states}")
-        logger.info(f"user_states keys = {list(user_states.keys())}")
-
-        # Простая логика - отправляем сообщение на chat_id из user_states
-        if user_id in user_states:
-            chat_id = user_states[user_id].get('chat_id')
-            logger.info(f"Найден chat_id: {chat_id}")
-
-            if chat_id and not shutting_down:
-                try:
-                    await context.bot.send_message(
-                        chat_id=chat_id,
-                        text="ТЕСТ: У тебя осталось 3 часа до конца скидки\n\n"
-                             "<a href='https://t.me/Alexander_brez'>Занять место по выгодной цене:</a>\n"
-                             "<a href='https://t.me/Alexander_brez'>Занять место</a>",
-                        parse_mode='HTML',
-                        disable_web_page_preview=True
-                    )
-                    logger.info(f"✅ Сообщение отправлено пользователю {user_id}")
-                except Exception as send_error:
-                    logger.error(f"Ошибка отправки: {send_error}")
-        else:
-            logger.warning(f"Пользователь {user_id} не найден в user_states")
-
-    except Exception as e:
-        logger.error(f"Ошибка в delayed_discount_reminder_test: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
 
 
 async def debug_state(update: Update, context: ContextTypes.DEFAULT_TYPE):
