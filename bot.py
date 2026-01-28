@@ -491,7 +491,7 @@ async def send_final_video(user_id, context):
     # Устанавливаем таймер для отправки напоминания о скидке через 21 час
     if not user_states[user_id].get('discount_timer_set', False):
         # Рассчитываем время отправки (21 час с момента финального сообщения)
-        reminder_time = datetime.now() + timedelta(second=3)
+        reminder_time = datetime.now() + timedelta(seconds=3)
 
         # Создаем отложенную задачу
         reminder_timer = asyncio.create_task(
