@@ -109,29 +109,29 @@ async def send_discount_reminder(context: ContextTypes.DEFAULT_TYPE, chat_id: in
 
 
 async def cleanup_user(user_id):
-    logger.info(f"⚠️ cleanup_user вызван для {user_id}, но временно отключен")
-    # """Очистка данных пользователя, но только если нет активных таймеров"""
-    # # Проверяем, есть ли активные таймеры
-    # has_active_timers = False
-    # if user_id in active_timers:
-    #     for timer in active_timers[user_id]:
-    #         if not timer.done():
-    #             has_active_timers = True
-    #             break
-    #
-    # # Если есть активные таймеры, не удаляем пользователя полностью
-    # if has_active_timers:
-    #     # Просто отмечаем как завершенного, но оставляем данные
-    #     if user_id in user_states:
-    #         user_states[user_id]['cleanup_pending'] = True
-    #     logger.info(f"Пользователь {user_id} имеет активные таймеры, откладываем очистку")
-    # else:
-    #     # Если таймеров нет, удаляем полностью
-    #     if user_id in active_timers:
-    #         active_timers.pop(user_id, None)
-    #     if user_id in user_states:
-    #         user_states.pop(user_id, None)
-    #     logger.info(f"Данные пользователя {user_id} полностью очищены")
+    # logger.info(f"⚠️ cleanup_user вызван для {user_id}, но временно отключен")
+    """Очистка данных пользователя, но только если нет активных таймеров"""
+    # Проверяем, есть ли активные таймеры
+    has_active_timers = False
+    if user_id in active_timers:
+        for timer in active_timers[user_id]:
+            if not timer.done():
+                has_active_timers = True
+                break
+
+    # Если есть активные таймеры, не удаляем пользователя полностью
+    if has_active_timers:
+        # Просто отмечаем как завершенного, но оставляем данные
+        if user_id in user_states:
+            user_states[user_id]['cleanup_pending'] = True
+        logger.info(f"Пользователь {user_id} имеет активные таймеры, откладываем очистку")
+    else:
+        # Если таймеров нет, удаляем полностью
+        if user_id in active_timers:
+            active_timers.pop(user_id, None)
+        if user_id in user_states:
+            user_states.pop(user_id, None)
+        logger.info(f"Данные пользователя {user_id} полностью очищены")
 
 
 # Добавляем новую функцию для проверки и удаления старых пользователей
@@ -488,15 +488,38 @@ async def send_final_video(user_id, context):
     )
 
     # Устанавливаем таймер для отправки напоминания о скидке
-    if not user_states[user_id].get('discount_timer_set', False):
-        reminder_time = datetime.now() + timedelta(seconds=5)
+    # if not user_states[user_id].get('discount_timer_set', False):
+    #     reminder_time = datetime.now() + timedelta(seconds=5)
+    # 
+    #     # Создаем отложенную задачу (ТЕСТОВАЯ ВЕРСИЯ)
+    #     reminder_timer = asyncio.create_task(
+    #         delayed_discount_reminder_test(user_id, context)  # ИСПОЛЬЗУЕМ ТЕСТОВУЮ
+    #     )
+    # 
+    #     # Сохраняем информацию о таймере
+    #     if user_id not in active_timers:
+    #         active_timers[user_id] = []
+    #     active_timers[user_id].append(reminder_timer)
+    # 
+    #     user_states[user_id]['discount_timer_set'] = True
+    #     user_states[user_id]['discount_reminder_time'] = reminder_time
+    # 
+    #     logger.info(f"🚀 Таймер скидки (ТЕСТ 5 секунд) установлен для пользователя {user_id}")
+    #     logger.info(f"📊 Текущие пользователи: {list(user_states.keys())}")
 
-        # Создаем отложенную задачу (ТЕСТОВАЯ ВЕРСИЯ)
+    user_states[user_id]['completed'] = True
+
+    # Устанавливаем таймер для отправки напоминания о скидке через 21 час
+    if not user_states[user_id].get('discount_timer_set', False):
+        # Рассчитываем время отправки (21 час с момента финального сообщения)
+        reminder_time = datetime.now() + timedelta(seconds=3)
+
+        # Создаем отложенную задачу
         reminder_timer = asyncio.create_task(
-            delayed_discount_reminder_test(user_id, context)  # ИСПОЛЬЗУЕМ ТЕСТОВУЮ
+            delayed_discount_reminder(user_id, context)
         )
 
-        # Сохраняем информацию о таймере
+        # ВАЖНО: добавляем таймер в active_timers
         if user_id not in active_timers:
             active_timers[user_id] = []
         active_timers[user_id].append(reminder_timer)
@@ -504,30 +527,7 @@ async def send_final_video(user_id, context):
         user_states[user_id]['discount_timer_set'] = True
         user_states[user_id]['discount_reminder_time'] = reminder_time
 
-        logger.info(f"🚀 Таймер скидки (ТЕСТ 5 секунд) установлен для пользователя {user_id}")
-        logger.info(f"📊 Текущие пользователи: {list(user_states.keys())}")
-
-    # user_states[user_id]['completed'] = True
-    #
-    # # Устанавливаем таймер для отправки напоминания о скидке через 21 час
-    # if not user_states[user_id].get('discount_timer_set', False):
-    #     # Рассчитываем время отправки (21 час с момента финального сообщения)
-    #     reminder_time = datetime.now() + timedelta(seconds=3)
-    #
-    #     # Создаем отложенную задачу
-    #     reminder_timer = asyncio.create_task(
-    #         delayed_discount_reminder(user_id, context)
-    #     )
-    #
-    #     # ВАЖНО: добавляем таймер в active_timers
-    #     if user_id not in active_timers:
-    #         active_timers[user_id] = []
-    #     active_timers[user_id].append(reminder_timer)
-    #
-    #     user_states[user_id]['discount_timer_set'] = True
-    #     user_states[user_id]['discount_reminder_time'] = reminder_time
-    #
-    #     logger.info(f"Таймер скидки установлен для пользователя {user_id} на {reminder_time}")
+        logger.info(f"Таймер скидки установлен для пользователя {user_id} на {reminder_time}")
 
 
 async def delayed_discount_reminder(user_id, context):
@@ -564,7 +564,7 @@ async def delayed_discount_reminder_test(user_id, context):
         logger.info(f"Таймер СТАРТ для пользователя {user_id} в {datetime.now()}")
 
         # Ждем 5 секунд (больше, чтобы наверняка)
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
 
         logger.info(f"Таймер ПРОСНУЛСЯ для пользователя {user_id} в {datetime.now()}")
         logger.info(f"shutting_down = {shutting_down}")
