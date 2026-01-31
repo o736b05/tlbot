@@ -574,28 +574,26 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def get_video_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Получает file_id видео (отправьте боту видео как файл)"""
 
-    # Вариант 1: Если отправляют видео как файл
     if update.message.video:
         video = update.message.video
         file_id = video.file_id
         file_unique_id = video.file_unique_id
 
         message = f"""
-🎬 **Информация о видео:**
+🎬 Информация о видео:
 
-📁 **file_id:** 
-`{file_id}`
+📁 file_id: 
+{file_id}
 
-🆔 **file_unique_id:**
-`{file_unique_id}`
+🆔 file_unique_id:
+{file_unique_id}
 
-⏱ **Длительность:** {video.duration} сек.
-📏 **Разрешение:** {video.width}x{video.height}
-💾 **Размер:** {video.file_size / (1024 * 1024):.2f} MB
+⏱ Длительность: {video.duration} сек.
+📏 Разрешение: {video.width}x{video.height}
+💾 Размер: {video.file_size / (1024 * 1024):.2f} MB
 """
-        await update.message.reply_text(message, parse_mode='Markdown')
+        await update.message.reply_text(message)  # Без parse_mode
 
-    # Вариант 2: Если отправляют как документ
     elif update.message.document:
         doc = update.message.document
         if doc.mime_type and 'video' in doc.mime_type:
@@ -603,18 +601,18 @@ async def get_video_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
             file_unique_id = doc.file_unique_id
 
             message = f"""
-🎬 **Информация о видео (документ):**
+🎬 Информация о видео (документ):
 
-📁 **file_id:** 
-`{file_id}`
+📁 file_id: 
+{file_id}
 
-🆔 **file_unique_id:**
-`{file_unique_id}`
+🆔 file_unique_id:
+{file_unique_id}
 
-📄 **Имя файла:** {doc.file_name}
-💾 **Размер:** {doc.file_size / (1024 * 1024):.2f} MB
+📄 Имя файла: {doc.file_name}
+💾 Размер: {doc.file_size / (1024 * 1024):.2f} MB
 """
-            await update.message.reply_text(message, parse_mode='Markdown')
+            await update.message.reply_text(message)  # Без parse_mode
         else:
             await update.message.reply_text("❌ Это не видео-файл")
     else:
