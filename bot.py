@@ -34,7 +34,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Обновленные данные для видео с вашим текстом
 VIDEOS = {
     1: {
-        'file_id': 'BAACAgIAAyEFAATbRVR3AAMCaX079TKJAe0AAa2BlFNZaHf3XNLzAAJpmQAC4cboS65tooEQVfGOOAQ',
+        'file_id': 'BAACAgIAAxkBAAMLaX5ONyhs6dq_nFOnhgwHF_xOMP0AAmmZAALhxuhL-jTg8IIffAw4BA',
         'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
         'text_before': """если у тебя не загружается урок — его можно 
 открыть по ссылке: https://disk.yandex.ru/d/E46C3yronk3JFQ
@@ -59,7 +59,7 @@ instagram.com/brezdenuk_/
         'conclusions': '📌 Отлично! Первый урок пройден!'
     },
     2: {
-        'file_id': 'BAACAgIAAyEFAATbRVR3AAMDaX1NiYmFkbxPwtxaa48Uhcm5AAF7AAKMmQAC4cboS0M1s0A2yVveOAQ',
+        'file_id': 'BAACAgIAAxkBAAMNaX5OUKzcpLpJPRCVTAiBU3CMedAAAoyZAALhxuhLHm-BSEgmn6g4BA',
         'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
         'text_before': """если у тебя не загружается урок — его можно 
 открыть по ссылке: https://disk.yandex.ru/d/E46C3yronk3JFQ
@@ -72,7 +72,7 @@ instagram.com/brezdenuk_/
         'conclusions': '📌 Отлично! Второй урок пройден!'
     },
     3: {
-        'file_id': 'BAACAgIAAyEFAATbRVR3AAMEaX1WaLnBTR5DMami5XoLxwTOkScAArCZAALhxuhLTZyhLhZGjU04BA',
+        'file_id': 'BAACAgIAAxkBAAMPaX5OY0OBR2MyvqqjER2gQJBtPmgAArCZAALhxuhLPtIub_pC0mE4BA',
         'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
         'text_before': """если у тебя не загружается урок — его можно 
 открыть по ссылке: https://disk.yandex.ru/d/E46C3yronk3JFQ
