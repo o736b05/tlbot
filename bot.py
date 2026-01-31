@@ -34,7 +34,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Обновленные данные для видео с вашим текстом
 VIDEOS = {
     1: {
-        'file_path': os.path.join(BASE_DIR, 'video1.mp4'),
+        'file_id': 'BAACAgIAAyEFAATbRVR3AAMCaX079TKJAe0AAa2BlFNZaHf3XNLzAAJpmQAC4cboS65tooEQVfGOOAQ',
         'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
         'text_before': """если у тебя не загружается урок — его можно 
 открыть по ссылке: https://disk.yandex.ru/d/E46C3yronk3JFQ
@@ -59,7 +59,7 @@ instagram.com/brezdenuk_/
         'conclusions': '📌 Отлично! Первый урок пройден!'
     },
     2: {
-        'file_path': os.path.join(BASE_DIR, 'video2.mp4'),
+        'file_id': 'BAACAgIAAyEFAATbRVR3AAMDaX1NiYmFkbxPwtxaa48Uhcm5AAF7AAKMmQAC4cboS0M1s0A2yVveOAQ',
         'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
         'text_before': """если у тебя не загружается урок — его можно 
 открыть по ссылке: https://disk.yandex.ru/d/E46C3yronk3JFQ
@@ -72,7 +72,7 @@ instagram.com/brezdenuk_/
         'conclusions': '📌 Отлично! Второй урок пройден!'
     },
     3: {
-        'file_path': os.path.join(BASE_DIR, 'video3.mp4'),
+        'file_id': 'BAACAgIAAyEFAATbRVR3AAMEaX1WaLnBTR5DMami5XoLxwTOkScAArCZAALhxuhLTZyhLhZGjU04BA',
         'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
         'text_before': """если у тебя не загружается урок — его можно 
 открыть по ссылке: https://disk.yandex.ru/d/E46C3yronk3JFQ
@@ -232,20 +232,13 @@ async def send_video(user_id, video_num, context):
 
     # 2. Отправляем само видео (ссылка или файл)
     try:
-        if os.path.exists(video_data['file_path']):
-            # Пытаемся отправить файлом
-            with open(video_data['file_path'], 'rb') as video_file:
-                await context.bot.send_video(
-                    chat_id=chat_id,
-                    video=video_file,
-                    supports_streaming=False,
-                    disable_notification=True
-                )
-                logger.info(f"Видео {video_num} отправлено файлом")
-        else:
-            # Если файла нет - отправляем ссылку
-            raise FileNotFoundError
-            # 1. Отправляем текстовое сообщение перед видео
+        await context.bot.send_video(
+            chat_id=chat_id,
+            video=video_data['file_id'],
+            supports_streaming=True,
+            disable_notification=True
+        )
+        logger.info(f"Видео {video_num} отправлено по file_id")
         await context.bot.send_message(
             chat_id=chat_id,
             text=video_data['text_before'],
@@ -254,14 +247,14 @@ async def send_video(user_id, video_num, context):
         )
 
     except (FileNotFoundError, Exception) as e:
-        # Отправляем ссылку на YouTube
+        logger.error(f"Ошибка отправки видео {video_num} по file_id: {e}")
+        # Резервный вариант - отправляем ссылку
         await context.bot.send_message(
             chat_id=chat_id,
             text=f"📺 Смотрите видео по ссылке:\n{video_data['url']}",
             parse_mode='HTML',
             disable_web_page_preview=False
         )
-        logger.info(f"Отправлена ссылка на видео {video_num}")
         await context.bot.send_message(
             chat_id=chat_id,
             text=video_data['text_before'],
