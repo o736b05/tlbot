@@ -35,9 +35,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 VIDEOS = {
     1: {
         'file_path': os.path.join(BASE_DIR, 'video1.mp4'),
-        'url': 'https://disk.yandex.ru/d/eO0ffJFFLev1YA',  # Замените на реальную ссылку
+        'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
         'text_before': """если у тебя не загружается урок — его можно 
-открыть по ссылке: https://disk.yandex.ru/d/eO0ffJFFLev1YA
+открыть по ссылке: https://disk.yandex.ru/d/E46C3yronk3JFQ
 
 урок 1. Основы Photoshop
 
@@ -60,9 +60,9 @@ instagram.com/brezdenuk_/
     },
     2: {
         'file_path': os.path.join(BASE_DIR, 'video2.mp4'),
-        'url': 'https://disk.yandex.ru/d/eO0ffJFFLev1YA',  # Замените на реальную ссылку
+        'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
         'text_before': """если у тебя не загружается урок — его можно 
-открыть по ссылке: https://disk.yandex.ru/d/eO0ffJFFLev1YA
+открыть по ссылке: https://disk.yandex.ru/d/E46C3yronk3JFQ
 
 урок 2. Создаем карточку для WB
 
@@ -73,9 +73,9 @@ instagram.com/brezdenuk_/
     },
     3: {
         'file_path': os.path.join(BASE_DIR, 'video3.mp4'),
-        'url': 'https://disk.yandex.ru/d/eO0ffJFFLev1YA',  # Замените на реальную ссылку
+        'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
         'text_before': """если у тебя не загружается урок — его можно 
-открыть по ссылке: https://disk.yandex.ru/d/eO0ffJFFLev1YA
+открыть по ссылке: https://disk.yandex.ru/d/E46C3yronk3JFQ
 
 урок 3. Как найти клиентов и начать зарабатывать.
 
@@ -86,7 +86,7 @@ instagram.com/brezdenuk_/
 
 FINAL_VIDEO = {
     'file_path': os.path.join(BASE_DIR, 'final_video.mp4'),
-    'url': 'https://disk.yandex.ru/d/eO0ffJFFLev1YA',  # Замените на реальную ссылку
+    'url': 'https://disk.yandex.ru/d/E46C3yronk3JFQ',  # Замените на реальную ссылку
     'caption': '🎯 Видео-сообщение от автора курса'
 }
 
@@ -571,6 +571,55 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def get_video_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Получает file_id видео (отправьте боту видео как файл)"""
+
+    # Вариант 1: Если отправляют видео как файл
+    if update.message.video:
+        video = update.message.video
+        file_id = video.file_id
+        file_unique_id = video.file_unique_id
+
+        message = f"""
+🎬 **Информация о видео:**
+
+📁 **file_id:** 
+`{file_id}`
+
+🆔 **file_unique_id:**
+`{file_unique_id}`
+
+⏱ **Длительность:** {video.duration} сек.
+📏 **Разрешение:** {video.width}x{video.height}
+💾 **Размер:** {video.file_size / (1024 * 1024):.2f} MB
+"""
+        await update.message.reply_text(message, parse_mode='Markdown')
+
+    # Вариант 2: Если отправляют как документ
+    elif update.message.document:
+        doc = update.message.document
+        if doc.mime_type and 'video' in doc.mime_type:
+            file_id = doc.file_id
+            file_unique_id = doc.file_unique_id
+
+            message = f"""
+🎬 **Информация о видео (документ):**
+
+📁 **file_id:** 
+`{file_id}`
+
+🆔 **file_unique_id:**
+`{file_unique_id}`
+
+📄 **Имя файла:** {doc.file_name}
+💾 **Размер:** {doc.file_size / (1024 * 1024):.2f} MB
+"""
+            await update.message.reply_text(message, parse_mode='Markdown')
+        else:
+            await update.message.reply_text("❌ Это не видео-файл")
+    else:
+        await update.message.reply_text("❌ Отправьте видео-файл")
+
 def main():
     """Запуск бота"""
     logger.info("🚀 Запуск Telegram бота...")
@@ -595,6 +644,7 @@ def main():
         application.add_handler(CommandHandler("help", help_command))
         application.add_handler(CommandHandler("debug", debug_state))
         application.add_handler(CallbackQueryHandler(button_handler))
+        application.add_handler(MessageHandler(filters.VIDEO | filters.Document.VIDEO, get_video_id))
 
         application.run_polling()
 
