@@ -3,7 +3,7 @@ import logging
 import asyncio
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 
 # ========== НАСТРОЙКА СРЕДЫ ==========
 IS_PRODUCTION = os.getenv('PYTHONANYWHERE_SITE') is not None or os.getenv('RAILWAY_ENVIRONMENT') == 'production'
