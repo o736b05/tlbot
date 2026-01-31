@@ -530,27 +530,6 @@ async def delayed_discount_reminder(user_id, context):
         logger.error(f"Ошибка в delayed_discount_reminder: {e}")
 
 
-async def debug_state(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Команда для отладки"""
-    user_id = update.effective_user.id
-
-    info = f"""
-📊 Отладочная информация:
-user_id: {user_id}
-user_id in user_states: {user_id in user_states}
-shutting_down: {shutting_down}
-
-Все user_states: {list(user_states.keys())}
-Все active_timers: {list(active_timers.keys())}
-"""
-
-    if user_id in user_states:
-        info += f"\nДанные пользователя {user_id}:"
-        for key, value in user_states[user_id].items():
-            info += f"\n  {key}: {value}"
-
-    await update.message.reply_text(info)
-
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Команда /help"""
     await update.message.reply_text(
@@ -563,53 +542,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode='HTML'
     )
 
-
-async def get_video_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Получает file_id видео (отправьте боту видео как файл)"""
-
-    if update.message.video:
-        video = update.message.video
-        file_id = video.file_id
-        file_unique_id = video.file_unique_id
-
-        message = f"""
-🎬 Информация о видео:
-
-📁 file_id: 
-{file_id}
-
-🆔 file_unique_id:
-{file_unique_id}
-
-⏱ Длительность: {video.duration} сек.
-📏 Разрешение: {video.width}x{video.height}
-💾 Размер: {video.file_size / (1024 * 1024):.2f} MB
-"""
-        await update.message.reply_text(message)  # Без parse_mode
-
-    elif update.message.document:
-        doc = update.message.document
-        if doc.mime_type and 'video' in doc.mime_type:
-            file_id = doc.file_id
-            file_unique_id = doc.file_unique_id
-
-            message = f"""
-🎬 Информация о видео (документ):
-
-📁 file_id: 
-{file_id}
-
-🆔 file_unique_id:
-{file_unique_id}
-
-📄 Имя файла: {doc.file_name}
-💾 Размер: {doc.file_size / (1024 * 1024):.2f} MB
-"""
-            await update.message.reply_text(message)  # Без parse_mode
-        else:
-            await update.message.reply_text("❌ Это не видео-файл")
-    else:
-        await update.message.reply_text("❌ Отправьте видео-файл")
 
 def main():
     """Запуск бота"""
@@ -633,9 +565,7 @@ def main():
 
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CommandHandler("help", help_command))
-        application.add_handler(CommandHandler("debug", debug_state))
         application.add_handler(CallbackQueryHandler(button_handler))
-        application.add_handler(MessageHandler(filters.VIDEO | filters.Document.VIDEO, get_video_id))
 
         application.run_polling()
 
